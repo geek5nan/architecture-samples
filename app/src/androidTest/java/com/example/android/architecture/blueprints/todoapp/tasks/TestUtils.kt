@@ -21,6 +21,12 @@ import androidx.appcompat.widget.Toolbar
 import androidx.test.core.app.ActivityScenario
 import com.example.android.architecture.blueprints.todoapp.R
 
+/**
+ * 获取当前 Activity 下 toolbar 中导航按钮对应的内容描述字符串
+ * 通常来讲，toolbar 导航按钮的内容描述对应以下字符串
+ * <string name="nav_app_bar_navigate_up_description">Navigate up</string> 表示返回按钮
+ * <string name="nav_app_bar_open_drawer_description">Open navigation drawer</string> 表示打开抽屉栏按钮
+ **/
 fun <T : Activity> ActivityScenario<T>.getToolbarNavigationContentDescription()
     : String {
     var description = ""
