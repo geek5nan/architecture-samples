@@ -20,11 +20,15 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.devwu.jetpack.architecture.BaseViewModel
+import com.devwu.jetpack.architecture.validate.IDataValidateRule
 import com.example.android.architecture.blueprints.todoapp.Event
 import com.example.android.architecture.blueprints.todoapp.R
 import com.example.android.architecture.blueprints.todoapp.data.Result.Success
 import com.example.android.architecture.blueprints.todoapp.data.Task
 import com.example.android.architecture.blueprints.todoapp.data.source.TasksRepository
+import com.example.android.architecture.blueprints.todoapp.tasks.ADD_EDIT_RESULT_OK
+import com.example.android.architecture.blueprints.todoapp.tasks.EDIT_RESULT_OK
 import kotlinx.coroutines.launch
 
 /**
@@ -32,108 +36,109 @@ import kotlinx.coroutines.launch
  */
 class AddEditTaskViewModel(
     private val tasksRepository: TasksRepository
-) : ViewModel() {
+) : BaseViewModel(), IDataValidateRule {
 
-    // Two-way databinding, exposing MutableLiveData
-    val title = MutableLiveData<String>()
+  // Two-way databinding, exposing MutableLiveData
+  val title = MutableLiveData<String>()
 
-    // Two-way databinding, exposing MutableLiveData
-    val description = MutableLiveData<String>()
+  // Two-way databinding, exposing MutableLiveData
+  val description = MutableLiveData<String>()
 
-    private val _dataLoading = MutableLiveData<Boolean>()
-    val dataLoading: LiveData<Boolean> = _dataLoading
+  private val _taskUpdatedEvent = MutableLiveData<Event<Int>>()
+  val taskUpdatedEvent: LiveData<Event<Int>> = _taskUpdatedEvent
 
-    private val _snackbarText = MutableLiveData<Event<Int>>()
-    val snackbarText: LiveData<Event<Int>> = _snackbarText
+  private var taskId: String? = null
 
-    private val _taskUpdatedEvent = MutableLiveData<Event<Unit>>()
-    val taskUpdatedEvent: LiveData<Event<Unit>> = _taskUpdatedEvent
+  private var isNewTask: Boolean = false
 
-    private var taskId: String? = null
+  private var isDataLoaded = false
 
-    private var isNewTask: Boolean = false
+  private var taskCompleted = false
 
-    private var isDataLoaded = false
 
-    private var taskCompleted = false
 
-    fun start(taskId: String?) {
-        if (_dataLoading.value == true) {
-            return
-        }
+  fun start(taskId: String?) {
 
-        this.taskId = taskId
-        if (taskId == null) {
-            // No need to populate, it's a new task
-            isNewTask = true
-            return
-        }
-        if (isDataLoaded) {
-            // No need to populate, already have data.
-            return
-        }
 
-        isNewTask = false
-        _dataLoading.value = true
-
-        viewModelScope.launch {
-            tasksRepository.getTask(taskId).let { result ->
-                if (result is Success) {
-                    onTaskLoaded(result.data)
-                } else {
-                    onDataNotAvailable()
-                }
-            }
-        }
+    this.taskId = taskId
+    if (taskId == null) {
+      // No need to populate, it's a new task
+      isNewTask = true
+      return
+    }
+    if (isDataLoaded) {
+      // No need to populate, already have data.
+      return
     }
 
-    private fun onTaskLoaded(task: Task) {
-        title.value = task.title
-        description.value = task.description
-        taskCompleted = task.isCompleted
-        _dataLoading.value = false
-        isDataLoaded = true
-    }
+    isNewTask = false
+    commandModel.emitDataLoading(true)
 
-    private fun onDataNotAvailable() {
-        _dataLoading.value = false
-    }
-
-    // Called when clicking on fab.
-    fun saveTask() {
-        val currentTitle = title.value
-        val currentDescription = description.value
-
-        if (currentTitle == null || currentDescription == null) {
-            _snackbarText.value = Event(R.string.empty_task_message)
-            return
-        }
-        if (Task(currentTitle, currentDescription).isEmpty) {
-            _snackbarText.value = Event(R.string.empty_task_message)
-            return
-        }
-
-        val currentTaskId = taskId
-        if (isNewTask || currentTaskId == null) {
-            createTask(Task(currentTitle, currentDescription))
+    viewModelScope.launch {
+      tasksRepository.getTask(taskId).let { result ->
+        if (result is Success) {
+          onTaskLoaded(result.data)
         } else {
-            val task = Task(currentTitle, currentDescription, taskCompleted, currentTaskId)
-            updateTask(task)
+          onDataNotAvailable()
         }
+      }
     }
+  }
 
-    private fun createTask(newTask: Task) = viewModelScope.launch {
-        tasksRepository.saveTask(newTask)
-        _taskUpdatedEvent.value = Event(Unit)
-    }
+  private fun onTaskLoaded(task: Task) {
+    title.value = task.title
+    description.value = task.description
+    taskCompleted = task.isCompleted
+    commandModel.emitDataLoading(false)
+    isDataLoaded = true
+  }
 
-    private fun updateTask(task: Task) {
-        if (isNewTask) {
-            throw RuntimeException("updateTask() was called but task is new.")
-        }
-        viewModelScope.launch {
-            tasksRepository.saveTask(task)
-            _taskUpdatedEvent.value = Event(Unit)
-        }
+  private fun onDataNotAvailable() {
+    commandModel.emitDataLoading(false)
+  }
+
+
+  override fun verifyData(isShowHint: Boolean): Boolean {
+    if (title.value.isNullOrEmpty() || description.value.isNullOrEmpty()) {
+      if (isShowHint) commandModel.emitHintEvent(R.string.empty_task_message)
+      return false
     }
+    return true
+  }
+
+  // Called when clicking on fab.
+  fun saveTask() {
+    val currentTitle = title.value
+    val currentDescription = description.value
+    if (!verifyData(true)) {
+      return
+    }
+    val currentTaskId = taskId
+    if (isNewTask || currentTaskId == null) {
+      createTask(Task(currentTitle!!, currentDescription!!))
+    } else {
+      val task = Task(currentTitle!!, currentDescription!!, taskCompleted, currentTaskId)
+      updateTask(task)
+    }
+  }
+
+  private fun createTask(newTask: Task) = viewModelScope.launch {
+    tasksRepository.saveTask(newTask)
+    _taskUpdatedEvent.value = Event(ADD_EDIT_RESULT_OK)
+//    commandModel.emitGoNext(ADD_EDIT_RESULT_OK)
+  }
+
+  private fun updateTask(task: Task) {
+    if (isNewTask) {
+      throw RuntimeException("updateTask() was called but task is new.")
+    }
+    viewModelScope.launch {
+      tasksRepository.saveTask(task)
+//      commandModel.emitGoNext(EDIT_RESULT_OK)
+      _taskUpdatedEvent.value = Event(EDIT_RESULT_OK)
+    }
+  }
+
+  override val queryModel =  QueryModel()
+  override val commandModel=  CommandModel()
 }

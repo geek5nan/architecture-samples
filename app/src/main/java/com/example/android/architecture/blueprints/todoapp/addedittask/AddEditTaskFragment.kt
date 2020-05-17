@@ -15,65 +15,64 @@
  */
 package com.example.android.architecture.blueprints.todoapp.addedittask
 
-import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
-import androidx.fragment.app.Fragment
+import android.util.Log
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.Observer
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.devwu.jetpack.architecture.BaseMvvmFragment
+import com.devwu.jetpack.architecture.hint.IntHint
+import com.devwu.jetpack.architecture.hint.StringHint
 import com.example.android.architecture.blueprints.todoapp.EventObserver
 import com.example.android.architecture.blueprints.todoapp.R
 import com.example.android.architecture.blueprints.todoapp.databinding.AddtaskFragBinding
-import com.example.android.architecture.blueprints.todoapp.tasks.ADD_EDIT_RESULT_OK
 import com.example.android.architecture.blueprints.todoapp.util.getViewModelFactory
 import com.example.android.architecture.blueprints.todoapp.util.setupRefreshLayout
-import com.example.android.architecture.blueprints.todoapp.util.setupSnackbar
 import com.google.android.material.snackbar.Snackbar
+import timber.log.Timber
 
 /**
  * Main UI for the add task screen. Users can enter a task title and description.
  */
-class AddEditTaskFragment : Fragment() {
+class AddEditTaskFragment : BaseMvvmFragment<AddtaskFragBinding, AddEditTaskViewModel>() {
 
-    private lateinit var viewDataBinding: AddtaskFragBinding
+  override val layoutId = R.layout.addtask_frag
 
-    private val args: AddEditTaskFragmentArgs by navArgs()
+  private val args: AddEditTaskFragmentArgs by navArgs()
 
-    private val viewModel by viewModels<AddEditTaskViewModel> { getViewModelFactory() }
+  override val vm: AddEditTaskViewModel by viewModels { getViewModelFactory() }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
-        val root = inflater.inflate(R.layout.addtask_frag, container, false)
-        viewDataBinding = AddtaskFragBinding.bind(root).apply {
-            this.viewmodel = viewModel
-        }
-        // Set the lifecycle owner to the lifecycle of the view
-        viewDataBinding.lifecycleOwner = this.viewLifecycleOwner
-        return viewDataBinding.root
-    }
+  private fun setupSnackbar() {
+    vm.queryModel.hintEvent.observe(viewLifecycleOwner, Observer {
+      val msg = when (it) {
+        is StringHint -> it.message
+        is IntHint -> getString(it.messageId)
+      }
+      Snackbar.make(view!!, msg, Snackbar.LENGTH_LONG).show()
+    })
+  }
 
-    override fun onActivityCreated(savedInstanceState: Bundle?) {
-        super.onActivityCreated(savedInstanceState)
-        setupSnackbar()
-        setupNavigation()
-        this.setupRefreshLayout(viewDataBinding.refreshLayout)
-        viewModel.start(args.taskId)
-    }
+  private fun setupNavigation() {
+    vm.taskUpdatedEvent.observe(this, EventObserver {
+      val action = AddEditTaskFragmentDirections
+          .actionAddEditTaskFragmentToTasksFragment(it)
+      findNavController().navigate(action)
+      vm.commandModel.emitGoNext("zzz")
+    })
+    vm.commandModel.emitGoNext("xxx")
+    vm.queryModel.goNextEvent.observe(this, Observer {
+      Timber.e("dddd"+it.toString())
+//      val action = AddEditTaskFragmentDirections
+//          .actionAddEditTaskFragmentToTasksFragment(it as Int)
+//      findNavController().navigate(action)
+    })
+    vm.commandModel.emitGoNext("yyyy")
+  }
 
-    private fun setupSnackbar() {
-        view?.setupSnackbar(this, viewModel.snackbarText, Snackbar.LENGTH_SHORT)
-    }
-
-    private fun setupNavigation() {
-        viewModel.taskUpdatedEvent.observe(this, EventObserver {
-            val action = AddEditTaskFragmentDirections
-                .actionAddEditTaskFragmentToTasksFragment(ADD_EDIT_RESULT_OK)
-            findNavController().navigate(action)
-        })
-    }
+  override fun initView() {
+    setupSnackbar()
+    setupNavigation()
+    this.setupRefreshLayout(binding.refreshLayout)
+    vm.start(args.taskId)
+  }
 }
