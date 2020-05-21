@@ -16,7 +16,7 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable
  * Created by WuNan at 2020/4/29 12:52 PM
  *
  *
- * contact: wunan@ybm100.com
+ * contact: geek5nan@gmail.com
  */
 abstract class BaseViewModel : ViewModel(), IAutoDispose, IDataValidateRule, IDataFetchHelper {
 

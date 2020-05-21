@@ -8,7 +8,7 @@ import java.lang.ref.WeakReference
 /**
  * Created by WuNan at 2020/5/17 11:10 AM
  *
- * contact: wunan@ybm100.com
+ * contact: geek5nan@gmail.com
  *
  * 默认数据加载指示器.
  */

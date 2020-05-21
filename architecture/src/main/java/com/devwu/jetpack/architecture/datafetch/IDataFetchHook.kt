@@ -4,7 +4,7 @@ package com.devwu.jetpack.architecture.datafetch
  * Created by WuNan at 2020/5/6 4:26 PM
  *
  *
- * contact: wunan@ybm100.com
+ * contact: geek5nan@gmail.com
  */
 interface IDataFetchHook {
   /**

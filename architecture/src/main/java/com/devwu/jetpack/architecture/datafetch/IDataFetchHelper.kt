@@ -6,7 +6,7 @@ import io.reactivex.rxjava3.core.Observable
 /**
  * Created by WuNan at 2020/4/29 5:01 PM
  *
- * contact: wunan@ybm100.com
+ * contact: geek5nan@gmail.com
  */
 interface IDataFetchHelper : IAutoDispose, IDataFetchHook {
 

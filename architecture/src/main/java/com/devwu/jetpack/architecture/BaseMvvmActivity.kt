@@ -11,7 +11,7 @@ import com.devwu.jetpack.architecture.loading.IDataLoadingIndicator
 /**
  * Created by WuNan at 2020/4/29 4:30 PM
  *
- * contact: wunan@ybm100.com
+ * contact: geek5nan@gmail.com
  */
 abstract class BaseMvvmActivity<V : ViewDataBinding, VM : BaseViewModel> : BaseActivity(), IAutoDispose {
 

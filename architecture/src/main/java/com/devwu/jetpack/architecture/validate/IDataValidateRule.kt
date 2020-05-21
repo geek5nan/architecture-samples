@@ -3,7 +3,7 @@ package com.devwu.jetpack.architecture.validate
 /**
  * Created by WuNan at 2020/5/6 4:12 PM
  *
- * contact: wunan@ybm100.com
+ * contact: geek5nan@gmail.com
  */
 interface IDataValidateRule {
   /**

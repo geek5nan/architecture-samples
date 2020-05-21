@@ -12,7 +12,7 @@ import io.reactivex.rxjava3.disposables.CompositeDisposable
 /**
  * Created by WuNan at 2020/5/17 10:12 PM
  *
- * contact: wunan@ybm100.com
+ * contact: geek5nan@gmail.com
  */
 abstract class BaseMvvmFragment<V : ViewDataBinding, VM : BaseViewModel> : BaseFragment(), IAutoDispose {
 

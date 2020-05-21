@@ -8,7 +8,7 @@ import com.devwu.jetpack.architecture.loading.IDataLoadingIndicator
 /**
  * Created by WuNan at 2020/4/29 1:06 PM
  *
- * contact: wunan@ybm100.com
+ * contact: geek5nan@gmail.com
  *
  * Activity 基类，作为最基础的 VC ，仅维护 Activity 语义下必要的、通用的函数及行为。
  * 与 Activity 关联较弱的功能及行为，放置在其他接口中实现。

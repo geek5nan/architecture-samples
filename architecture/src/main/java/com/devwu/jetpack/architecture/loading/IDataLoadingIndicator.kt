@@ -5,7 +5,7 @@ package com.devwu.jetpack.architecture.loading
  *
  * [IDataLoadingIndicator] 接口内的函数及行为仅关注数据加载动画。
  *
- * contact: wunan@ybm100.com
+ * contact: geek5nan@gmail.com
  */
 interface IDataLoadingIndicator {
 
